@@ -573,12 +573,6 @@ class calc_bbe:
 # Obtain relative thermochemistry between species and for reactions
 class get_pes:
     def __init__(self, file, thermo_data, log, temperature, gconf, QH, cosmo=None, cosmo_int=None):
-        try:
-            import matplotlib.pyplot as plt
-        except ImportError:
-            log.write("\n\n   Warning! matplotlib module is not installed, reaction profile will not be graphed.")
-            log.write("\n   To install matplotlib, run the following commands: \n\t   python -m pip install -U pip" +
-                      "\n\t   python -m pip install -U matplotlib\n\n")
 
         for key in thermo_data:
             if not hasattr(thermo_data[key], "qh_gibbs_free_energy"):
@@ -3045,7 +3039,8 @@ def tabulate(thermo_data, options, log):
                     log.write('{:>13} {:>13} {:>10} {:>13} {:>10} {:>10} {:>14} '
                               '{:>14}'.format(" DE_SPC", "DE", "DZPE", "DH_SPC", "T.DS", "T.qh-DS", "DG(T)_SPC",
                                               "qh-DG(T)_SPC"), thermodata=True)
-            log.write("\n" + stars)
+
+            #log.write("\n" + stars)
 
             for j, e_abs in enumerate(pes.e_abs[i]):
                 if options.QH:
@@ -3130,7 +3125,7 @@ def tabulate(thermo_data, options, log):
                     log.write("\n" + stars + "\n   " + '{:<39} {:13.1f}%{:24.1f}%{:35.1f}%{:13.1f}%'.format('ee (%)', *ee))
                 else:
                     log.write("\n" + stars + "\n   " + '{:<39} {:27.1f} {:24.1f} {:35.1f} {:13.1f} '.format('ee (%)', *ee))
-            log.write("\n" + stars + "\n")
+            #log.write("\n" + stars + "\n")
 
 def main():
     start = time.strftime("%Y/%m/%d %H:%M:%S", time.localtime())
@@ -3614,6 +3609,13 @@ def main():
 
     # Graph reaction profiles
     if options.graph is not False:
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError:
+            log.write("\n\n   Warning! matplotlib module is not installed, reaction profile will not be graphed.")
+            log.write("\n   To install matplotlib, run the following commands: \n\t   python -m pip install -U pip" +
+                      "\n\t   python -m pip install -U matplotlib\n\n")
+        
         graph_data = get_pes(options.graph, thermo_data, log, options.temperature, options.gconf, options.QH)
         graph_reaction_profile(graph_data, log, options, plt)
 
