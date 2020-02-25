@@ -14,7 +14,7 @@ class Logger:
             suffix = "dat"
         else:
             suffix = "csv"
-        self.log = open("{0}_{1}.{2}".format(filein, append, suffix), "w")
+        self.log = open(f"{filein}_{append}.{suffix}", "w")
 
     def write(self, message, thermodata=False):
         self.thermodata = thermodata
@@ -38,16 +38,16 @@ class Logger:
 # Enables output of optimized coordinates to a single xyz-formatted file
 class xyz_out:
     def __init__(self, filein, suffix, append):
-        self.xyz = open("{}_{}.{}".format(filein, append, suffix), "w")
+        self.xyz = open(f"{filein}_{append}.{suffix}", "w")
 
     def write_text(self, message):
         self.xyz.write(message + "\n")
 
     def write_coords(self, atoms, coords):
         for n, carts in enumerate(coords):
-            self.xyz.write("{:>1}".format(atoms[n]))
+            self.xyz.write(f"{atoms[n]:>1}")
             for cart in carts:
-                self.xyz.write("{:13.6f}".format(cart))
+                self.xyz.write(f"{cart:13.6f}")
             self.xyz.write("\n")
 
     def finalize(self):
@@ -92,20 +92,20 @@ def print_check_fails(log, check_attribute, file, attribute, option2=False):
             unique_attr[attr] = [file[i]]
         else:
             unique_attr[attr].append(file[i])
-    log.write("\nx  Caution! Different {} found: ".format(attribute))
+    log.write(f"\nx  Caution! Different {attribute} found: ")
     for attr in unique_attr:
         if option2 is not False:
             if float(attr[0]) < 0:
-                log.write("\n       {} {}: ".format(attr[0], attr[1]))
+                log.write(f"\n       {attr[0]} {attr[1]}: ")
             else:
-                log.write("\n        {} {}: ".format(attr[0], attr[1]))
+                log.write(f"\n        {attr[0]} {attr[1]}: ")
         else:
-            log.write("\n        -{}: ".format(attr))
+            log.write(f"\n        -{attr}: ")
         for filename in unique_attr[attr]:
             if filename is unique_attr[attr][-1]:
-                log.write("{}".format(filename))
+                log.write(f"{filename}")
             else:
-                log.write("{}, ".format(filename))
+                log.write(f"{filename}, ")
 
 
 # Perform careful checks on calculation output files
@@ -119,13 +119,13 @@ def check_files(log, files, thermo_data, options, STARS, l_o_t, orientation, gri
     version_check = [thermo_data[key].version_program for key in thermo_data]
     file_check = [thermo_data[key].file for key in thermo_data]
     if all_same(version_check) != False:
-        log.write("\no  Using {} in all calculations.".format(version_check[0]))
+        log.write(f"\no  Using {version_check[0]} in all calculations.")
     else:
         print_check_fails(log, version_check, file_check, "programs or versions")
 
     # Check level of theory
     if all_same(l_o_t) is not False:
-        log.write("\no  Using {} in all calculations.".format(l_o_t[0]))
+        log.write(f"\no  Using {l_o_t[0]} in all calculations.")
     elif all_same(l_o_t) is False:
         print_check_fails(log, l_o_t, file_check, "levels of theory")
 
@@ -133,7 +133,7 @@ def check_files(log, files, thermo_data, options, STARS, l_o_t, orientation, gri
     solvent_check = [thermo_data[key].solvation_model[0] for key in thermo_data]
     if all_same(solvent_check):
         solvent_check = [thermo_data[key].solvation_model[1] for key in thermo_data]
-        log.write("\no  Using {} in all calculations.".format(solvent_check[0]))
+        log.write(f"\no  Using {solvent_check[0]} in all calculations.")
     else:
         solvent_check = [thermo_data[key].solvation_model[1] for key in thermo_data]
         print_check_fails(log, solvent_check, file_check, "solvation models")
@@ -200,7 +200,7 @@ def check_files(log, files, thermo_data, options, STARS, l_o_t, orientation, gri
     else:
         log.write("\nx  Caution! Possible duplicates or enantiomers found:")
         for dup in dup_list:
-            log.write("\n        {} and {}".format(dup[0], dup[1]))
+            log.write(f"\n        {dup[0]} and {dup[1]}")
 
     # Check for linear molecules with incorrect number of vibrational modes
     (
@@ -393,11 +393,7 @@ def check_files(log, files, thermo_data, options, STARS, l_o_t, orientation, gri
         # Check SPC level of theory
         l_o_t_spc = [parse.level_of_theory(name) for name in names_spc]
         if all_same(l_o_t_spc):
-            log.write(
-                "\no  Using {} in all the single-point corrections.".format(
-                    l_o_t_spc[0]
-                )
-            )
+            log.write(f"\no  Using {l_o_t_spc[0]} in all the single-point corrections.")
         else:
             print_check_fails(log, l_o_t_spc, file_check, "levels of theory")
 
@@ -454,33 +450,28 @@ def check_files(log, files, thermo_data, options, STARS, l_o_t, orientation, gri
                     if count == 1:
                         if geom_duplic_list[0][i][j] == geom_duplic_list_spc[0][i][j]:
                             count = count
-                        elif "{0:.3f}".format(
-                            geom_duplic_list[0][i][j][0]
-                        ) == "{0:.3f}".format(
-                            geom_duplic_list_spc[0][i][j][0] * (-1)
-                        ) or "{0:.3f}".format(
-                            geom_duplic_list[0][i][j][0]
-                        ) == "{0:.3f}".format(
-                            geom_duplic_list_spc[0][i][j][0]
+                        elif (
+                            f"{geom_duplic_list[0][i][j][0]:.3f}"
+                            == "{0:.3f}".format(geom_duplic_list_spc[0][i][j][0] * (-1))
+                            or f"{geom_duplic_list[0][i][j][0]:.3f}"
+                            == f"{geom_duplic_list_spc[0][i][j][0]:.3f}"
                         ):
-                            if "{0:.3f}".format(
-                                geom_duplic_list[0][i][j][1]
-                            ) == "{0:.3f}".format(
-                                geom_duplic_list_spc[0][i][j][1] * (-1)
-                            ) or "{0:.3f}".format(
-                                geom_duplic_list[0][i][j][1]
-                            ) == "{0:.3f}".format(
-                                geom_duplic_list_spc[0][i][j][1] * (-1)
+                            if (
+                                "{0:.3f}".format(geom_duplic_list[0][i][j][1])
+                                == "{0:.3f}".format(
+                                    geom_duplic_list_spc[0][i][j][1] * (-1)
+                                )
+                                or "{0:.3f}".format(geom_duplic_list[0][i][j][1])
+                                == f"{geom_duplic_list_spc[0][i][j][1] * -1:.3f}"
                             ):
                                 count = count
-                            if "{0:.3f}".format(
-                                geom_duplic_list[0][i][j][2]
-                            ) == "{0:.3f}".format(
-                                geom_duplic_list_spc[0][i][j][2] * (-1)
-                            ) or "{0:.3f}".format(
-                                geom_duplic_list[0][i][j][2]
-                            ) == "{0:.3f}".format(
-                                geom_duplic_list_spc[0][i][j][2] * (-1)
+                            if (
+                                "{0:.3f}".format(geom_duplic_list[0][i][j][2])
+                                == "{0:.3f}".format(
+                                    geom_duplic_list_spc[0][i][j][2] * (-1)
+                                )
+                                or "{0:.3f}".format(geom_duplic_list[0][i][j][2])
+                                == f"{geom_duplic_list_spc[0][i][j][2] * -1:.3f}"
                             ):
                                 count = count
                         else:

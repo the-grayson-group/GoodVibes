@@ -342,4 +342,3 @@ for row in scaling_data:
     scaling_data_dict[level_basis.upper()] = scaling_data_dict_mod[
         level_basis.replace("-", "").upper()
     ] = data
-

@@ -24,7 +24,7 @@ def parse_data(file):
         with open(os.path.splitext(file)[0] + ".out") as f:
             data = f.readlines()
     else:
-        raise ValueError("File {} does not exist".format(file))
+        raise ValueError(f"File {file} does not exist")
 
     for line in data:
         if "Gaussian" in line:
@@ -362,7 +362,7 @@ def cosmo_rs_out(datfile, names, interval=False):
         with open(datfile) as f:
             data = f.readlines()
     else:
-        raise ValueError("File {} does not exist".format(datfile))
+        raise ValueError(f"File {datfile} does not exist")
 
     temp = 0
     t_interval = []
@@ -501,7 +501,7 @@ def sp_cpu(file):
         with open(os.path.splitext(file)[0] + ".out") as f:
             data = f.readlines()
     else:
-        raise ValueError("File {} does not exist".format(file))
+        raise ValueError(f"File {file} does not exist")
 
     for line in data:
         if line.find("Gaussian") > -1:

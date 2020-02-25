@@ -146,7 +146,7 @@ class calc_bbe:
                         # If given MM freq scale factor fill the fract_modelsys array:
                         if mm_freq_scale_factor is not False:
                             y = float(newline.strip().split()[j]) / 100.0
-                            y = float("{:.6f}".format(y))
+                            y = float(f"{y:.6f}")
                         else:
                             y = 1.0
                         # Only deal with real frequencies

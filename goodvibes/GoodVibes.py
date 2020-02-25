@@ -735,9 +735,7 @@ def main():
         for key in spc_progress:
             if spc_progress[key] == "Error":
                 sys.exit(
-                    "\n\nx  ERROR! Error termination found in file {} calculations.".format(
-                        key
-                    )
+                    f"\n\nx  ERROR! Error termination found in file {key} calculations."
                 )
             elif spc_progress[key] == "Incomplete":
                 sys.exit(
@@ -818,7 +816,7 @@ def main():
                 + " for MM region of "
                 + l_o_t[0]
             )
-            log.write("\n   REF: {}".format(oniom_scale_ref))
+            log.write(f"\n   REF: {oniom_scale_ref}")
         else:
             sys.exit(
                 "\n   Option --vmm is only for use in ONIOM calculation output files.\n   "
@@ -1166,14 +1164,14 @@ def main():
                 )
         if options.cosmo is not False:
             log.write(
-                "{:>13} {:>16}".format("COSMO-RS", "COSMO-qh-G(T)"), thermodata=True
+                f"{'COSMO-RS':>13} {'COSMO-qh-G(T)':>16}", thermodata=True
             )
         if options.boltz is True:
-            log.write("{:>7}".format("Boltz"), thermodata=True)
+            log.write(f"{'Boltz':>7}", thermodata=True)
         if options.imag_freq is True:
-            log.write("{:>9}".format("im freq"), thermodata=True)
+            log.write(f"{'im freq':>9}", thermodata=True)
         if options.ssymm:
-            log.write("{:>13}".format("Point Group"), thermodata=True)
+            log.write(f"{'Point Group':>13}", thermodata=True)
         log.write("\n" + stars + "")
 
         # Look for duplicates or enantiomers
@@ -1225,7 +1223,7 @@ def main():
                         )
                     else:
                         xyz.write_text(
-                            "{:<39}".format(os.path.splitext(os.path.basename(file))[0])
+                            f"{os.path.splitext(os.path.basename(file))[0]:<39}"
                         )
                     if hasattr(xyzdata, "cartesians") and hasattr(
                         xyzdata, "atom_types"
@@ -1236,7 +1234,7 @@ def main():
                 if bbe.linear_warning:
                     log.write(
                         "\nx  "
-                        + "{:<39}".format(os.path.splitext(os.path.basename(file))[0])
+                        + f"{os.path.splitext(os.path.basename(file))[0]:<39}"
                     )
                     log.write(
                         "          ----   Caution! Potential invalid calculation of linear molecule from Gaussian"
@@ -1253,7 +1251,7 @@ def main():
                                     thermodata=True,
                                 )
                                 log.write(
-                                    " {:13.6f}".format(bbe.sp_energy), thermodata=True
+                                    f" {bbe.sp_energy:13.6f}", thermodata=True
                                 )
                             if bbe.sp_energy == "!":
                                 log.write("\nx  ")
@@ -1263,13 +1261,11 @@ def main():
                                     ),
                                     thermodata=True,
                                 )
-                                log.write(" {:>13}".format("----"), thermodata=True)
+                                log.write(f" {'----':>13}", thermodata=True)
                         else:
                             log.write("\no  ")
                             log.write(
-                                "{:<39}".format(
-                                    os.path.splitext(os.path.basename(file))[0]
-                                ),
+                                f"{os.path.splitext(os.path.basename(file))[0]:<39}",
                                 thermodata=True,
                             )
                     # Gaussian SPC file handling
@@ -1278,9 +1274,7 @@ def main():
                     ):
                         log.write(
                             "\nx  "
-                            + "{:<39}".format(
-                                os.path.splitext(os.path.basename(file))[0]
-                            )
+                            + f"{os.path.splitext(os.path.basename(file))[0]:<39}"
                         )
                     # ORCA spc files
                     elif not hasattr(bbe, "scf_energy") and not hasattr(
@@ -1288,12 +1282,10 @@ def main():
                     ):
                         log.write(
                             "\nx  "
-                            + "{:<39}".format(
-                                os.path.splitext(os.path.basename(file))[0]
-                            )
+                            + f"{os.path.splitext(os.path.basename(file))[0]:<39}"
                         )
                     if hasattr(bbe, "scf_energy"):
-                        log.write(" {:13.6f}".format(bbe.scf_energy), thermodata=True)
+                        log.write(f" {bbe.scf_energy:13.6f}", thermodata=True)
                     # No freqs found
                     if not hasattr(bbe, "gibbs_free_energy"):
                         log.write("   Warning! Couldn't find frequency information ...")
@@ -1341,7 +1333,7 @@ def main():
                             and options.media.lower()
                             == os.path.splitext(os.path.basename(file))[0].lower()
                         ):
-                            log.write("  Solvent: {:4.2f}M ".format(media_conc))
+                            log.write(f"  Solvent: {media_conc:4.2f}M ")
 
                 # Append requested options to end of output
                 if options.cosmo and cosmo_solv is not None:
@@ -1353,16 +1345,16 @@ def main():
                     )
                 if options.boltz is True:
                     log.write(
-                        "{:7.3f}".format(boltz_facs[file] / boltz_sum), thermodata=True
+                        f"{boltz_facs[file] / boltz_sum:7.3f}", thermodata=True
                     )
                 if options.imag_freq is True and hasattr(bbe, "im_frequency_wn"):
                     for freq in bbe.im_frequency_wn:
-                        log.write("{:9.2f}".format(freq), thermodata=True)
+                        log.write(f"{freq:9.2f}", thermodata=True)
                 if options.ssymm:
                     if hasattr(bbe, "qh_gibbs_free_energy"):
-                        log.write("{:>13}".format(bbe.point_group))
+                        log.write(f"{bbe.point_group:>13}")
                     else:
-                        log.write("{:>37}".format("---"))
+                        log.write(f"{'---':>37}")
             # Cluster files if requested
             if clustering:
                 dashes = "-" * (len(stars) - 3)
@@ -1426,7 +1418,7 @@ def main():
         else:
             interval = t_interval
             log.write(
-                "\n   T init:  %.1f,   T final: %.1f" % (interval[0], interval[-1])
+                f"\n   T init:  {interval[0]:.1f},   T final: {interval[-1]:.1f}"
             )
 
         if options.QH:
@@ -1580,7 +1572,7 @@ def main():
                 ]:
                     log.write("\nx  ")
                     log.write(
-                        "{:<39}".format(os.path.splitext(os.path.basename(file))[0]),
+                        f"{os.path.splitext(os.path.basename(file))[0]:<39}",
                         thermodata=True,
                     )
                     log.write(
@@ -1593,9 +1585,7 @@ def main():
                     ):
                         log.write(
                             "\nx  "
-                            + "{:<39}".format(
-                                os.path.splitext(os.path.basename(file))[0]
-                            )
+                            + f"{os.path.splitext(os.path.basename(file))[0]:<39}"
                         )
                     # ORCA spc files
                     elif not hasattr(bbe, "scf_energy") and not hasattr(
@@ -1603,9 +1593,7 @@ def main():
                     ):
                         log.write(
                             "\nx  "
-                            + "{:<39}".format(
-                                os.path.splitext(os.path.basename(file))[0]
-                            )
+                            + f"{os.path.splitext(os.path.basename(file))[0]:<39}"
                         )
                     if not hasattr(bbe, "gibbs_free_energy"):
                         log.write("Warning! Couldn't find frequency information ...")
@@ -1682,7 +1670,7 @@ def main():
                             and options.media.lower()
                             == os.path.splitext(os.path.basename(file))[0].lower()
                         ):
-                            log.write("  Solvent: {:4.2f}M ".format(media_conc))
+                            log.write(f"  Solvent: {media_conc:4.2f}M ")
 
             log.write("\n" + stars + "\n")
 
@@ -2303,7 +2291,7 @@ def main():
                 if options.spc is False:
                     log.write(
                         "\n   "
-                        + "{:<40}".format("RXN: " + path + " (" + pes.units + ") ",)
+                        + f"{'RXN: ' + path + ' (' + pes.units + ') ':<40}"
                     )
                     if options.QH and options.cosmo:
                         log.write(
@@ -2368,7 +2356,7 @@ def main():
                 else:
                     log.write(
                         "\n   "
-                        + "{:<40}".format("RXN: " + path + " (" + pes.units + ") ",)
+                        + f"{'RXN: ' + path + ' (' + pes.units + ') ':<40}"
                     )
                     if options.QH and options.cosmo:
                         log.write(

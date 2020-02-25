@@ -285,13 +285,13 @@ def graph_reaction_profile(graph_data, log, options, plt):
             for i, point in enumerate(data[path]):
                 if dec is 1:
                     ax.annotate(
-                        "{:.1f}".format(point),
+                        f"{point:.1f}",
                         (i, point - fig.get_figheight() * fig.dpi * 0.025),
                         horizontalalignment="center",
                     )
                 else:
                     ax.annotate(
-                        "{:.2f}".format(point),
+                        f"{point:.2f}",
                         (i, point - fig.get_figheight() * fig.dpi * 0.025),
                         horizontalalignment="center",
                     )
