@@ -1,9 +1,8 @@
 from datetime import datetime, timedelta
 import sys
 import os
-from . import constants
+from . import constants, parse
 from .get_out_data import getoutData
-from . import parse
 
 
 # Enables output to terminal and to text file
@@ -118,7 +117,7 @@ def check_files(log, files, thermo_data, options, STARS, l_o_t, orientation, gri
     # Check program used and version
     version_check = [thermo_data[key].version_program for key in thermo_data]
     file_check = [thermo_data[key].file for key in thermo_data]
-    if all_same(version_check) != False:
+    if all_same(version_check) is not False:
         log.write(f"\no  Using {version_check[0]} in all calculations.")
     else:
         print_check_fails(log, version_check, file_check, "programs or versions")
@@ -170,11 +169,11 @@ def check_files(log, files, thermo_data, options, STARS, l_o_t, orientation, gri
                     options.conc
                 )
             )
-    if all_same(solvent_check) == False and "gas phase" in solvent_check:
+    if not all_same(solvent_check) and ("gas phase" in solvent_check):
         log.write(
             "\nx  Caution! The right standard concentration cannot be determined because the calculations use a combination of gas and solvent phases."
         )
-    if all_same(solvent_check) == False and "gas phase" not in solvent_check:
+    if not all_same(solvent_check) and ("gas phase" not in solvent_check):
         log.write(
             "\nx  Caution! Different solvents used, fix this issue and use option -c 1 for a standard concentration of 1 M."
         )
@@ -182,7 +181,7 @@ def check_files(log, files, thermo_data, options, STARS, l_o_t, orientation, gri
     # Check charge and multiplicity
     charge_check = [thermo_data[key].charge for key in thermo_data]
     multiplicity_check = [thermo_data[key].multiplicity for key in thermo_data]
-    if all_same(charge_check) != False and all_same(multiplicity_check) != False:
+    if all_same(charge_check) and all_same(multiplicity_check):
         log.write(
             "\no  Using charge {} and multiplicity {} in all calculations.".format(
                 charge_check[0], multiplicity_check[0]
@@ -402,10 +401,7 @@ def check_files(log, files, thermo_data, options, STARS, l_o_t, orientation, gri
         multiplicity_spc_check = [
             thermo_data[key].sp_multiplicity for key in thermo_data
         ]
-        if (
-            all_same(charge_spc_check) != False
-            and all_same(multiplicity_spc_check) != False
-        ):
+        if all_same(charge_spc_check) and all_same(multiplicity_spc_check):
             log.write(
                 "\no  Using charge and multiplicity {} {} in all the single-point corrections.".format(
                     charge_spc_check[0], multiplicity_spc_check[0]

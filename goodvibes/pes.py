@@ -14,7 +14,7 @@ class get_pes:
 
         with open(file) as f:
             data = f.readlines()
-        folder, program, names, files, zeros, pes_list = None, None, [], [], [], []
+        folder, names, files, zeros, pes_list = None, [], [], [], []
         for i, dline in enumerate(data):
             if dline.strip().find("PES") > -1:
                 for j, line in enumerate(data[i + 1 :]):
@@ -140,7 +140,7 @@ class get_pes:
                             pass
 
         for i in range(len(files)):
-            if len(files[i]) is 1:
+            if len(files[i]) == 1:
                 files[i] = files[i][0]
         species = dict(zip(names, files))
         self.path, self.species = [], []
@@ -176,11 +176,11 @@ class get_pes:
             if dline.strip().find("PES") > -1:
                 n = 0
                 for j, line in enumerate(data[i + 1 :]):
-                    if line.strip().startswith("#") == True:
+                    if line.strip().startswith("#"):
                         pass
                     elif len(line) <= 2:
                         pass
-                    elif line.strip().startswith("---") == True:
+                    elif line.strip().startswith("---"):
                         break
                     elif line.strip() != "":
                         try:
@@ -331,7 +331,7 @@ class get_pes:
                                                     thermo_data[conformer], "sp_energy"
                                                 )
                                                 and thermo_data[conformer].sp_energy
-                                                is not "!"
+                                                != "!"
                                             ):
                                                 spc_zero += (
                                                     thermo_data[conformer].sp_energy
@@ -342,7 +342,7 @@ class get_pes:
                                                     thermo_data[conformer], "sp_energy"
                                                 )
                                                 and thermo_data[conformer].sp_energy
-                                                is "!"
+                                                == "!"
                                             ):
                                                 sys.exit(
                                                     "Not all files contain a SPC value, relative values will not be calculated."
@@ -730,7 +730,7 @@ class get_pes:
                                                         and thermo_data[
                                                             conformer
                                                         ].sp_energy
-                                                        is not "!"
+                                                        != "!"
                                                     ):
                                                         spc_abs += (
                                                             thermo_data[
@@ -746,7 +746,7 @@ class get_pes:
                                                         and thermo_data[
                                                             conformer
                                                         ].sp_energy
-                                                        is "!"
+                                                        == "!"
                                                     ):
                                                         sys.exit(
                                                             "\n   Not all files contain a SPC value, relative values will not be calculated.\n"

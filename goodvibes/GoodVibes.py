@@ -133,7 +133,7 @@ def get_selectivity(pattern, files, boltz_facs, boltz_sum, temperature, log, dup
         a_files.extend(glob(a_regex))
         b_files.extend(glob(b_regex))
 
-    if len(a_files) is 0 or len(b_files) is 0:
+    if (len(a_files) == 0) or (len(b_files) == 0):
         log.write(
             "\n   Warning! Filenames have not been formatted correctly for determining selectivity\n"
         )
@@ -148,7 +148,7 @@ def get_selectivity(pattern, files, boltz_facs, boltz_sum, temperature, log, dup
             for dup in dup_list:
                 if dup[0] == file:
                     duplicate = True
-        if duplicate == False:
+        if not duplicate:
             if file in a_files:
                 a_sum += boltz_facs[file] / boltz_sum
             elif file in b_files:
@@ -213,7 +213,7 @@ def get_boltz(files, thermo_data, clustering, clusters, temperature, dup_list):
     for file in files:  # Need the most stable structure
         bbe = thermo_data[file]
         if hasattr(bbe, "qh_gibbs_free_energy"):
-            if bbe.qh_gibbs_free_energy != None:
+            if bbe.qh_gibbs_free_energy is not None:
                 if bbe.qh_gibbs_free_energy < e_min:
                     e_min = bbe.qh_gibbs_free_energy
 
@@ -232,7 +232,7 @@ def get_boltz(files, thermo_data, clustering, clusters, temperature, dup_list):
 
             bbe = thermo_data[file]
             if hasattr(bbe, "qh_gibbs_free_energy"):
-                if bbe.qh_gibbs_free_energy != None:
+                if bbe.qh_gibbs_free_energy is not None:
                     e_rel[file] = bbe.qh_gibbs_free_energy - e_min
                     boltz_facs[file] = math.exp(
                         -e_rel[file]
@@ -632,7 +632,7 @@ def main():
                 os.path.splitext(elem)[1].lower() in constants.SUPPORTED_EXTENSIONS
             ):  # Look for file names
                 for file in glob(elem):
-                    if options.spc is False or options.spc is "link":
+                    if options.spc is False or options.spc == "link":
                         if file is not options.cosmo:
                             files.append(file)
                         if clustering:
@@ -697,7 +697,7 @@ def main():
     # Grab level of theory, solvation model, check for Normal Termination
     l_o_t, s_m, progress, spc_progress, orientation, grid = [], [], {}, {}, {}, {}
     for file in files:
-        lot_sm_prog = read_initial(file)
+        lot_sm_prog = parse.read_initial(file)
         l_o_t.append(lot_sm_prog[0])
         s_m.append(lot_sm_prog[1])
         progress[file] = lot_sm_prog[2]
@@ -710,7 +710,7 @@ def main():
                 spc_file = name + "_" + options.spc + ".log"
             elif os.path.exists(name + "_" + options.spc + ".out"):
                 spc_file = name + "_" + options.spc + ".out"
-            lot_sm_prog = read_initial(spc_file)
+            lot_sm_prog = parse.read_initial(spc_file)
             spc_progress[spc_file] = lot_sm_prog[2]
 
     remove_key = []
@@ -836,7 +836,7 @@ def main():
                 "detected.".format(options.freq_scale_factor)
             )
     # Checks to see whether the available free space of a requested solvent is defined
-    freespace = get_free_space(options.freespace)
+    freespace = utils.get_free_space(options.freespace)
     if freespace != 1000.0:
         log.write(
             "\n   Specified solvent "
@@ -1022,7 +1022,7 @@ def main():
                 d3_energy = 0.0
         conc = options.conc
         # check if media correction should be applied
-        if options.media != False:
+        if options.media is not False:
             try:
                 from .media import solvents
             except:
@@ -1163,9 +1163,7 @@ def main():
                     thermodata=True,
                 )
         if options.cosmo is not False:
-            log.write(
-                f"{'COSMO-RS':>13} {'COSMO-qh-G(T)':>16}", thermodata=True
-            )
+            log.write(f"{'COSMO-RS':>13} {'COSMO-qh-G(T)':>16}", thermodata=True)
         if options.boltz is True:
             log.write(f"{'Boltz':>7}", thermodata=True)
         if options.imag_freq is True:
@@ -1181,7 +1179,7 @@ def main():
             dup_list = []
 
         # Boltzmann factors and averaging over clusters
-        if options.boltz != False:
+        if options.boltz is not False:
             boltz_facs, weighted_free_energy, boltz_sum = get_boltz(
                 files, thermo_data, clustering, clusters, options.temperature, dup_list
             )
@@ -1200,12 +1198,12 @@ def main():
                         break
             if not duplicate:
                 bbe = thermo_data[file]
-                if options.cputime != False:  # Add up CPU times
+                if options.cputime is not False:  # Add up CPU times
                     if hasattr(bbe, "cpu"):
-                        if bbe.cpu != None:
+                        if bbe.cpu is not None:
                             total_cpu_time = utils.add_time(total_cpu_time, bbe.cpu)
                     if hasattr(bbe, "sp_cpu"):
-                        if bbe.sp_cpu != None:
+                        if bbe.sp_cpu is not None:
                             total_cpu_time = utils.add_time(total_cpu_time, bbe.sp_cpu)
                 if total_cpu_time.month > 1:
                     add_days += 31
@@ -1233,8 +1231,7 @@ def main():
                 # Check for possible error in Gaussian calculation of linear molecules which can return 2 rotational constants instead of 3
                 if bbe.linear_warning:
                     log.write(
-                        "\nx  "
-                        + f"{os.path.splitext(os.path.basename(file))[0]:<39}"
+                        "\nx  " + f"{os.path.splitext(os.path.basename(file))[0]:<39}"
                     )
                     log.write(
                         "          ----   Caution! Potential invalid calculation of linear molecule from Gaussian"
@@ -1250,9 +1247,7 @@ def main():
                                     ),
                                     thermodata=True,
                                 )
-                                log.write(
-                                    f" {bbe.sp_energy:13.6f}", thermodata=True
-                                )
+                                log.write(f" {bbe.sp_energy:13.6f}", thermodata=True)
                             if bbe.sp_energy == "!":
                                 log.write("\nx  ")
                                 log.write(
@@ -1344,9 +1339,7 @@ def main():
                         )
                     )
                 if options.boltz is True:
-                    log.write(
-                        f"{boltz_facs[file] / boltz_sum:7.3f}", thermodata=True
-                    )
+                    log.write(f"{boltz_facs[file] / boltz_sum:7.3f}", thermodata=True)
                 if options.imag_freq is True and hasattr(bbe, "im_frequency_wn"):
                     for freq in bbe.im_frequency_wn:
                         log.write(f"{freq:9.2f}", thermodata=True)
@@ -1417,9 +1410,7 @@ def main():
             )
         else:
             interval = t_interval
-            log.write(
-                f"\n   T init:  {interval[0]:.1f},   T final: {interval[-1]:.1f}"
-            )
+            log.write(f"\n   T init:  {interval[0]:.1f},   T final: {interval[-1]:.1f}")
 
         if options.QH:
             qh_print_format = (
@@ -2290,8 +2281,7 @@ def main():
 
                 if options.spc is False:
                     log.write(
-                        "\n   "
-                        + f"{'RXN: ' + path + ' (' + pes.units + ') ':<40}"
+                        "\n   " + f"{'RXN: ' + path + ' (' + pes.units + ') ':<40}"
                     )
                     if options.QH and options.cosmo:
                         log.write(
@@ -2355,8 +2345,7 @@ def main():
                         )
                 else:
                     log.write(
-                        "\n   "
-                        + f"{'RXN: ' + path + ' (' + pes.units + ') ':<40}"
+                        "\n   " + f"{'RXN: ' + path + ' (' + pes.units + ') ':<40}"
                     )
                     if options.QH and options.cosmo:
                         log.write(

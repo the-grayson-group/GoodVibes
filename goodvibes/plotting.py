@@ -283,7 +283,7 @@ def graph_reaction_profile(graph_data, log, options, plt):
     if label_point:
         for i, path in enumerate(graph_data.path):
             for i, point in enumerate(data[path]):
-                if dec is 1:
+                if dec == 1:
                     ax.annotate(
                         f"{point:.1f}",
                         (i, point - fig.get_figheight() * fig.dpi * 0.025),
@@ -317,7 +317,7 @@ def graph_reaction_profile(graph_data, log, options, plt):
         newax_text = []
         ax_label.append(path)
         for j, e_abs in enumerate(graph_data.e_abs[i]):
-            if i is 0:
+            if i == 0:
                 xaxis_text.append(graph_data.species[i][j])
             else:
                 newax_text.append(graph_data.species[i][j])

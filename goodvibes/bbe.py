@@ -1,12 +1,9 @@
 import os
 import ctypes
 import sys
+import numpy as np
 import math
-from . import parse
-from . import energies
-from . import entropies
-from . import constants
-from . import utils
+from . import parse, energies, entropies, constants, utils
 from .get_out_data import getoutData
 
 
@@ -82,7 +79,7 @@ class calc_bbe:
             g_output = f.readlines()
         self.cosmo_qhg = 0.0
         # Read any single point energies if requested
-        if spc != False and spc != "link":
+        if spc is not False and spc != "link":
             name, ext = os.path.splitext(file)
             try:
                 (

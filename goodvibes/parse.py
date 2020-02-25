@@ -393,7 +393,7 @@ def cosmo_rs_out(datfile, names, interval=False):
 
                             found = True
             if found:
-                if oldtemp is 0:
+                if oldtemp == 0:
                     oldtemp = temp
                 if temp is not oldtemp:
                     gsolv_dicts.append(gsolv)  # Store dict at one temp
@@ -608,7 +608,7 @@ def read_initial(file):
             level = level[1:]
 
     # Grab solvation models - Gaussian files
-    if program is "Gaussian":
+    if program == "Gaussian":
         for i, line in enumerate(data):
             if "#" in line.strip() and a == 0:
                 for j, line in enumerate(data[i : i + 10]):
@@ -652,7 +652,7 @@ def read_initial(file):
                         end_scrf = len(keyword_line)
                     solvation_model = "scrf=" + keyword_line[start_scrf:end_scrf]
     # ORCA parsing for solvation model
-    elif program is "Orca":
+    elif program == "Orca":
         keyword_line_1 = "gas phase"
         keyword_line_2 = ""
         keyword_line_3 = ""
