@@ -58,9 +58,10 @@ import sys
 import time
 from datetime import datetime
 from glob import glob
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 import numpy as np
 from string import ascii_lowercase as alphabet
+from typing import Union, List
 
 from . import utils, parse, plotting, constants
 from .pes import get_pes
@@ -318,274 +319,25 @@ def check_dup(files, thermo_data):
     return dup_list
 
 
-def main():
+def main(options: Union[dict, Namespace], args: List[str]):
+    if not isinstance(options, Namespace) and isinstance(options, dict):
+        temp, _ = arg_parse()
+        for k, v in options.items():
+            if hasattr(temp, k):
+                setattr(temp, k, v)
+            else:
+                print(
+                    f"!!!!! No option called {k} in settings namespace, skipping!!!!",
+                    end="\n\n",
+                )
+        options = temp
+
     files = []
     bbe_vals = []
     clusters = []
     command = "   Requested: "
     clustering = False
-    # Get command line inputs. Use -h to list all possible arguments and default values
-    parser = ArgumentParser()
-    parser.add_argument(
-        "-q",
-        dest="Q",
-        action="store_true",
-        default=False,
-        help="Quasi-harmonic entropy correction and enthalpy correction applied (default S=Grimme, "
-        "H=Head-Gordon)",
-    )
-    parser.add_argument(
-        "--qs",
-        dest="QS",
-        default="grimme",
-        type=str.lower,
-        metavar="QS",
-        choices=("grimme", "truhlar"),
-        help="Type of quasi-harmonic entropy correction (Grimme or Truhlar) (default Grimme)",
-    )
-    parser.add_argument(
-        "--qh",
-        dest="QH",
-        action="store_true",
-        default=False,
-        help="Type of quasi-harmonic enthalpy correction (Head-Gordon)",
-    )
-    parser.add_argument(
-        "-f",
-        dest="freq_cutoff",
-        default=100,
-        type=float,
-        metavar="FREQ_CUTOFF",
-        help="Cut-off frequency for both entropy and enthalpy (wavenumbers) (default = 100)",
-    )
-    parser.add_argument(
-        "--fs",
-        dest="S_freq_cutoff",
-        default=100.0,
-        type=float,
-        metavar="S_FREQ_CUTOFF",
-        help="Cut-off frequency for entropy (wavenumbers) (default = 100)",
-    )
-    parser.add_argument(
-        "--fh",
-        dest="H_freq_cutoff",
-        default=100.0,
-        type=float,
-        metavar="H_FREQ_CUTOFF",
-        help="Cut-off frequency for enthalpy (wavenumbers) (default = 100)",
-    )
-    parser.add_argument(
-        "-t",
-        dest="temperature",
-        default=298.15,
-        type=float,
-        metavar="TEMP",
-        help="Temperature (K) (default 298.15)",
-    )
-    parser.add_argument(
-        "-c",
-        dest="conc",
-        default=False,
-        type=float,
-        metavar="CONC",
-        help="Concentration (mol/l) (default 1 atm)",
-    )
-    parser.add_argument(
-        "--ti",
-        dest="temperature_interval",
-        default=False,
-        metavar="TI",
-        help="Initial temp, final temp, step size (K)",
-    )
-    parser.add_argument(
-        "-v",
-        dest="freq_scale_factor",
-        default=False,
-        type=float,
-        metavar="SCALE_FACTOR",
-        help="Frequency scaling factor. If not set, try to find a suitable value in database. "
-        "If not found, use 1.0",
-    )
-    parser.add_argument(
-        "--vmm",
-        dest="mm_freq_scale_factor",
-        default=False,
-        type=float,
-        metavar="MM_SCALE_FACTOR",
-        help="Additional frequency scaling factor used in ONIOM calculations",
-    )
-    parser.add_argument(
-        "--spc",
-        dest="spc",
-        type=str,
-        default=False,
-        metavar="SPC",
-        help="Indicates single point corrections (default False)",
-    )
-    parser.add_argument(
-        "--boltz",
-        dest="boltz",
-        action="store_true",
-        default=False,
-        help="Show Boltzmann factors",
-    )
-    parser.add_argument(
-        "--cpu",
-        dest="cputime",
-        action="store_true",
-        default=False,
-        help="Total CPU time",
-    )
-    parser.add_argument(
-        "--d3",
-        dest="D3",
-        action="store_true",
-        default=False,
-        help="Zero-damped DFTD3 correction will be computed",
-    )
-    parser.add_argument(
-        "--d3bj",
-        dest="D3BJ",
-        action="store_true",
-        default=False,
-        help="Becke-Johnson damped DFTD3 correction will be computed",
-    )
-    parser.add_argument(
-        "--atm",
-        dest="ATM",
-        action="store_true",
-        default=False,
-        help="Axilrod-Teller-Muto 3-body dispersion correction will be computed",
-    )
-    parser.add_argument(
-        "--xyz",
-        dest="xyz",
-        action="store_true",
-        default=False,
-        help="Write Cartesians to a .xyz file (default False)",
-    )
-    parser.add_argument(
-        "--csv",
-        dest="csv",
-        action="store_true",
-        default=False,
-        help="Write .csv output file format",
-    )
-    parser.add_argument(
-        "--imag",
-        dest="imag_freq",
-        action="store_true",
-        default=False,
-        help="Print imaginary frequencies (default False)",
-    )
-    parser.add_argument(
-        "--invertifreq",
-        dest="invert",
-        nargs="?",
-        const=True,
-        default=False,
-        help="Make low lying imaginary frequencies positive (cutoff > -50.0 wavenumbers)",
-    )
-    parser.add_argument(
-        "--freespace",
-        dest="freespace",
-        default="none",
-        type=str,
-        metavar="FREESPACE",
-        help="Solvent (H2O, toluene, DMF, AcOH, chloroform) (default none)",
-    )
-    parser.add_argument(
-        "--dup",
-        dest="duplicate",
-        action="store_true",
-        default=False,
-        help="Remove possible duplicates from thermochemical analysis",
-    )
-    parser.add_argument(
-        "--cosmo",
-        dest="cosmo",
-        default=False,
-        metavar="COSMO-RS",
-        help="Filename of a COSMO-RS .tab output file",
-    )
-    parser.add_argument(
-        "--cosmo_int",
-        dest="cosmo_int",
-        default=False,
-        metavar="COSMO-RS",
-        help="Filename of a COSMO-RS .tab output file along with a temperature range (K): "
-        "file.tab,'Initial_T, Final_T'",
-    )
-    parser.add_argument(
-        "--output",
-        dest="output",
-        default="output",
-        metavar="OUTPUT",
-        help='Change the default name of the output file to GoodVibes_"output".dat',
-    )
-    parser.add_argument(
-        "--pes",
-        dest="pes",
-        default=False,
-        metavar="PES",
-        help="Tabulate relative values",
-    )
-    parser.add_argument(
-        "--nogconf",
-        dest="gconf",
-        action="store_false",
-        default=True,
-        help="Calculate a free-energy correction related to multi-configurational space (default "
-        "calculate Gconf)",
-    )
-    parser.add_argument(
-        "--ee",
-        dest="ee",
-        default=False,
-        type=str,
-        help="Tabulate selectivity values (excess, ratio) from a mixture, provide pattern for two "
-        "types such as *_R*,*_S*",
-    )
-    parser.add_argument(
-        "--check",
-        dest="check",
-        action="store_true",
-        default=False,
-        help="Checks if calculations were done with the same program, level of theory and solvent, "
-        "as well as detects potential duplicates",
-    )
-    parser.add_argument(
-        "--media",
-        dest="media",
-        default=False,
-        metavar="MEDIA",
-        help="Entropy correction for standard concentration of solvents",
-    )
-    parser.add_argument(
-        "--custom_ext",
-        type=str,
-        default="",
-        help="List of additional file extensions to support, beyond .log or .out, use separated by "
-        "commas (ie, '.qfi, .gaussian'). It can also be specified with environment variable "
-        "GOODVIBES_CUSTOM_EXT",
-    )
-    parser.add_argument(
-        "--graph",
-        dest="graph",
-        default=False,
-        metavar="GRAPH",
-        help="Graph a reaction profile based on free energies calculated. ",
-    )
-    parser.add_argument(
-        "--ssymm",
-        dest="ssymm",
-        action="store_true",
-        default=False,
-        help="Turn on the symmetry correction.",
-    )
 
-    # Parse Arguments
-    (options, args) = parser.parse_known_args()
     # If requested, turn on head-gordon enthalpy correction
     if options.Q:
         options.QH = True
@@ -620,8 +372,6 @@ def main():
                 clustering = True
                 options.boltz = True
                 nclust = -1
-    # Get the filenames from the command line prompt
-    args = sys.argv[1:]
     for elem in args:
         if clustering:
             if elem == "clust:":
@@ -2690,5 +2440,275 @@ def main():
         xyz.finalize()
 
 
+def arg_parse():
+    # Get command line inputs. Use -h to list all possible arguments and default values
+    parser = ArgumentParser()
+    parser.add_argument(
+        "-q",
+        dest="Q",
+        action="store_true",
+        default=False,
+        help="Quasi-harmonic entropy correction and enthalpy correction applied (default S=Grimme, "
+        "H=Head-Gordon)",
+    )
+    parser.add_argument(
+        "--qs",
+        dest="QS",
+        default="grimme",
+        type=str.lower,
+        metavar="QS",
+        choices=("grimme", "truhlar"),
+        help="Type of quasi-harmonic entropy correction (Grimme or Truhlar) (default Grimme)",
+    )
+    parser.add_argument(
+        "--qh",
+        dest="QH",
+        action="store_true",
+        default=False,
+        help="Type of quasi-harmonic enthalpy correction (Head-Gordon)",
+    )
+    parser.add_argument(
+        "-f",
+        dest="freq_cutoff",
+        default=100,
+        type=float,
+        metavar="FREQ_CUTOFF",
+        help="Cut-off frequency for both entropy and enthalpy (wavenumbers) (default = 100)",
+    )
+    parser.add_argument(
+        "--fs",
+        dest="S_freq_cutoff",
+        default=100.0,
+        type=float,
+        metavar="S_FREQ_CUTOFF",
+        help="Cut-off frequency for entropy (wavenumbers) (default = 100)",
+    )
+    parser.add_argument(
+        "--fh",
+        dest="H_freq_cutoff",
+        default=100.0,
+        type=float,
+        metavar="H_FREQ_CUTOFF",
+        help="Cut-off frequency for enthalpy (wavenumbers) (default = 100)",
+    )
+    parser.add_argument(
+        "-t",
+        dest="temperature",
+        default=298.15,
+        type=float,
+        metavar="TEMP",
+        help="Temperature (K) (default 298.15)",
+    )
+    parser.add_argument(
+        "-c",
+        dest="conc",
+        default=False,
+        type=float,
+        metavar="CONC",
+        help="Concentration (mol/l) (default 1 atm)",
+    )
+    parser.add_argument(
+        "--ti",
+        dest="temperature_interval",
+        default=False,
+        metavar="TI",
+        help="Initial temp, final temp, step size (K)",
+    )
+    parser.add_argument(
+        "-v",
+        dest="freq_scale_factor",
+        default=False,
+        type=float,
+        metavar="SCALE_FACTOR",
+        help="Frequency scaling factor. If not set, try to find a suitable value in database. "
+        "If not found, use 1.0",
+    )
+    parser.add_argument(
+        "--vmm",
+        dest="mm_freq_scale_factor",
+        default=False,
+        type=float,
+        metavar="MM_SCALE_FACTOR",
+        help="Additional frequency scaling factor used in ONIOM calculations",
+    )
+    parser.add_argument(
+        "--spc",
+        dest="spc",
+        type=str,
+        default=False,
+        metavar="SPC",
+        help="Indicates single point corrections (default False)",
+    )
+    parser.add_argument(
+        "--boltz",
+        dest="boltz",
+        action="store_true",
+        default=False,
+        help="Show Boltzmann factors",
+    )
+    parser.add_argument(
+        "--cpu",
+        dest="cputime",
+        action="store_true",
+        default=False,
+        help="Total CPU time",
+    )
+    parser.add_argument(
+        "--d3",
+        dest="D3",
+        action="store_true",
+        default=False,
+        help="Zero-damped DFTD3 correction will be computed",
+    )
+    parser.add_argument(
+        "--d3bj",
+        dest="D3BJ",
+        action="store_true",
+        default=False,
+        help="Becke-Johnson damped DFTD3 correction will be computed",
+    )
+    parser.add_argument(
+        "--atm",
+        dest="ATM",
+        action="store_true",
+        default=False,
+        help="Axilrod-Teller-Muto 3-body dispersion correction will be computed",
+    )
+    parser.add_argument(
+        "--xyz",
+        dest="xyz",
+        action="store_true",
+        default=False,
+        help="Write Cartesians to a .xyz file (default False)",
+    )
+    parser.add_argument(
+        "--csv",
+        dest="csv",
+        action="store_true",
+        default=False,
+        help="Write .csv output file format",
+    )
+    parser.add_argument(
+        "--imag",
+        dest="imag_freq",
+        action="store_true",
+        default=False,
+        help="Print imaginary frequencies (default False)",
+    )
+    parser.add_argument(
+        "--invertifreq",
+        dest="invert",
+        nargs="?",
+        const=True,
+        default=False,
+        help="Make low lying imaginary frequencies positive (cutoff > -50.0 wavenumbers)",
+    )
+    parser.add_argument(
+        "--freespace",
+        dest="freespace",
+        default="none",
+        type=str,
+        metavar="FREESPACE",
+        help="Solvent (H2O, toluene, DMF, AcOH, chloroform) (default none)",
+    )
+    parser.add_argument(
+        "--dup",
+        dest="duplicate",
+        action="store_true",
+        default=False,
+        help="Remove possible duplicates from thermochemical analysis",
+    )
+    parser.add_argument(
+        "--cosmo",
+        dest="cosmo",
+        default=False,
+        metavar="COSMO-RS",
+        help="Filename of a COSMO-RS .tab output file",
+    )
+    parser.add_argument(
+        "--cosmo_int",
+        dest="cosmo_int",
+        default=False,
+        metavar="COSMO-RS",
+        help="Filename of a COSMO-RS .tab output file along with a temperature range (K): "
+        "file.tab,'Initial_T, Final_T'",
+    )
+    parser.add_argument(
+        "--output",
+        dest="output",
+        default="output",
+        metavar="OUTPUT",
+        help='Change the default name of the output file to GoodVibes_"output".dat',
+    )
+    parser.add_argument(
+        "--pes",
+        dest="pes",
+        default=False,
+        metavar="PES",
+        help="Tabulate relative values",
+    )
+    parser.add_argument(
+        "--nogconf",
+        dest="gconf",
+        action="store_false",
+        default=True,
+        help="Calculate a free-energy correction related to multi-configurational space (default "
+        "calculate Gconf)",
+    )
+    parser.add_argument(
+        "--ee",
+        dest="ee",
+        default=False,
+        type=str,
+        help="Tabulate selectivity values (excess, ratio) from a mixture, provide pattern for two "
+        "types such as *_R*,*_S*",
+    )
+    parser.add_argument(
+        "--check",
+        dest="check",
+        action="store_true",
+        default=False,
+        help="Checks if calculations were done with the same program, level of theory and solvent, "
+        "as well as detects potential duplicates",
+    )
+    parser.add_argument(
+        "--media",
+        dest="media",
+        default=False,
+        metavar="MEDIA",
+        help="Entropy correction for standard concentration of solvents",
+    )
+    parser.add_argument(
+        "--custom_ext",
+        type=str,
+        default="",
+        help="List of additional file extensions to support, beyond .log or .out, use separated by "
+        "commas (ie, '.qfi, .gaussian'). It can also be specified with environment variable "
+        "GOODVIBES_CUSTOM_EXT",
+    )
+    parser.add_argument(
+        "--graph",
+        dest="graph",
+        default=False,
+        metavar="GRAPH",
+        help="Graph a reaction profile based on free energies calculated. ",
+    )
+    parser.add_argument(
+        "--ssymm",
+        dest="ssymm",
+        action="store_true",
+        default=False,
+        help="Turn on the symmetry correction.",
+    )
+
+    # Parse Arguments
+    return parser.parse_known_args()
+
+
+def cli_entrypoint():
+    options, args = arg_parse()
+    main(options, args)
+
+
 if __name__ == "__main__":
-    main()
+    cli_entrypoint()
